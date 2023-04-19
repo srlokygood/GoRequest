@@ -10,55 +10,73 @@ import (
 	"time"
 )
 
+var id_estafador string
+var chat_id string
+
 func main() {
+	fmt.Println("Ingresa el id del estafador")
+	fmt.Scanln(&id_estafador)
+	fmt.Println("Ingresa el chat id")
+	fmt.Scanln(&chat_id)
+
 	for i := 0; i < 100000; i++ {
-		envios()
-		fmt.Println("Enviando")
+		enviados := envios()
+		fmt.Println("Ciclo: " + strconv.Itoa(i+1) + "," + strconv.Itoa(enviados))
 		time.Sleep(30 * time.Second)
 	}
 }
 
-func envios() {
+func envios() int {
+	var enviados = 0
 	for i := 0; i < 20; i++ {
-		enviar()
+		estate := enviar()
+		if estate == true {
+			enviados++
+		}
 	}
+	return enviados
 }
 
-func enviar() {
-
-	url := "https://api.telegram.org/bot5804094908:AAFud3DYsCROqCk7wRSiuwzfOqP4LHbCS8I/sendMessage"
+func enviar() bool {
+	var est = false
+	url := "https://api.telegram.org/bot" + id_estafador + "/sendMessage"
 	method := "POST"
-	msg := "DAVIPLATA DATOS\nDOC: " + rand_data(1050000000, 1000000000) + "\nClave: " + rand_data(9999, 1000) + "\nIP: " +
-		rand_data(195, 190) + "." + rand_data(255, 0) + "." + rand_data(255, 0) + "\n" + "Bogota D.C"
+	ip_fake := rand_data(195, 190) + "." + rand_data(255, 0) + "." + rand_data(255, 0)
+	fake_clave := rand_data(9999, 1000)
+	fake_cedula := rand_data(1050000000, 1000000000)
+	msg := "DAVIPLATA DATOS\nDOC: " + fake_cedula + "\nClave: " + fake_clave + "\nIP: " + ip_fake + "\n" + "Bogota D.C"
 
-	payload := strings.NewReader(`{` + "" + `
-	  "chat_id": "@enriquerincon1",` + "" + `
-	  "text": "` + msg + `",` + "" + `
-  	}`)
+	payload := strings.NewReader(`{` +
+		`"chat_id": "` + chat_id + `",` +
+		`"text": "` + msg + `",` +
+		`}`)
 
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, payload)
 
 	if err != nil {
 		fmt.Println(err)
-		return
+		return est
 	}
 	req.Header.Add("Content-Type", "application/json")
 
 	res, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
-		return
+		return est
 	}
 	defer res.Body.Close()
 
-	ioutil.ReadAll(res.Body)
-	/*if err != nil {
+	_, err = ioutil.ReadAll(res.Body)
+	if err != nil {
 		fmt.Println(err)
-		return
-	}*/
+		return est
+	} else {
+		est = true
+	}
 
 	//fmt.Println(string(body))
+	return est
 }
 
 func rand_data(maxa int, mine int) string {
